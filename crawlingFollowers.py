@@ -7,6 +7,23 @@ from selenium.webdriver.common.keys import Keys
 import time
 import pandas as pd
 
+#return true jika diblok instagram
+def isError():
+    try :
+        waitUntilCSSselector("div[class = 'main -cx-PRIVATE-Page__main -cx-PRIVATE-Page__main__']", 2)
+    except :
+        return False
+    return True
+    
+
+#return true jika suatu element ada
+def checkIfCSSselectorExist(CSSselector):
+    try:
+        waitUntilCSSselector(CSSselector, 2)
+    except:
+        return False
+    return True
+
 #thanks to : https://selenium-python.readthedocs.io/waits.html
 #program berhenti sampai element tertentu pada html muncul
 def waitUntil(xpath, batasWaktu):
@@ -44,8 +61,11 @@ def cleanString(String):
 
 #return true jika akun tersebut private, return false jika sebaliknya
 def isPrivate(username):
+    time.sleep(5)
     driver.get("https://www.instagram.com/"+username)
     output = False
+    if(isError()):
+        return output
     try:
         waitUntil("//div[@class = 'v1Nh3 kIKUG  _bz0w']", 5)
     #kalo error berarti akun tersebut private
@@ -74,13 +94,14 @@ url = "https://www.instagram.com/accounts/login/"
 usernameIG = input('username : ')
 password = input('password : ')
 jumlahAkun = int(input('masukkan jumlah akun yang ingin diambil : '))
+akunPertama = input('username akun yang ingin dikunjungi pertama kali (harus public) : ')
 
 driver = webdriver.Firefox()
 driver.get(url)
 
-unvisitedAccounts2 = ["beritasatu"]
+unvisitedAccounts2 = [akunPertama]
 #output
-unvisitedAccounts1 = ["beritasatu"]
+unvisitedAccounts1 = [akunPertama]
 visitedAccounts = []
 
 waitUntilName("username", 20)
@@ -104,17 +125,22 @@ try:
 except:
     pass
 
-#mengambil followers instagram
+#mengunjungi akun untuk mengambil followers instagram
 while len(unvisitedAccounts1) < jumlahAkun:
+    
     #mencari akun selanjutnya
     currentAccount = unvisitedAccounts2.pop(0)
     while isPrivate(currentAccount) and len(unvisitedAccounts2) > 0:
+        time.sleep(5)
         currentAccount = unvisitedAccounts2.pop(0)
 
     #mengunjungi halaman akun
     driver.get("https://www.instagram.com/"+currentAccount)
     visitedAccounts.append(currentAccount)
     time.sleep(5)
+
+    if(isError()):
+        break
     
     #mengambil jumlah follower
     try:
@@ -123,6 +149,7 @@ while len(unvisitedAccounts1) < jumlahAkun:
     except:
         continue
 
+    #jumlah followers dibatasi hanya 100 teratas untuk menghindari pembatasan dari instagram
     if jmlhFollowers > 50 :
         jmlhFollowers = 50
             
@@ -133,7 +160,6 @@ while len(unvisitedAccounts1) < jumlahAkun:
     #mengambil semua id followers
     acc = list()
     yPosition = 0
-    time.sleep(2)
     while len(acc) < jmlhFollowers :
         try:
             waitUntilCSSselector(".isgrP", 10)
@@ -145,6 +171,11 @@ while len(unvisitedAccounts1) < jumlahAkun:
             yPosition += 250
         except:
             break
+
+        if checkIfCSSselectorExist("div[class = 'W1Bne   ztp9m ']"):
+            time.sleep(5)
+            if checkIfCSSselectorExist("div[class = 'W1Bne   ztp9m ']"):
+                break
 
     #memasukkan semua id followers ke unvisitedAccounts
     for i in range(len(acc)):

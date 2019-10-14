@@ -3,7 +3,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys 
-#from selenium.webdriver.common.action_chains import ActionChains
 import time
 import pandas as pd
 
@@ -69,40 +68,42 @@ def getTag(String):
     return output
 
 
-
 driver = webdriver.Firefox()
 
-#variabel buat pandas
-data = dict()
-data["ACCOUNTS"] = list()
-data["POSTS"] = list()
-data["TAGS"] = list()
-data["LIKES"] = list()
-data["COMMENTS"] = list()
+#load data level1
+try :
+    df = pd.read_csv("level 1.csv")
+except:
+    data = dict()
+    data["ACCOUNTS"] = list()
+    data["POSTS"] = list()
+    data["TAGS"] = list()
+    data["LIKES"] = list()
+    data["COMMENTS"] = list()
+    df = pd.DataFrame(data)
 
-db = pd.DataFrame(data)
-
-db.to_csv("level 1.csv", index = False)
-
-#untuk crawling postingan
-unvisitedAccounts = []
+#list yang berisi daftar akun instagram yang akan dikunjungi
+unvisitedAccounts = list()
 
 temp = open("accounts.txt", "r")
 unvisitedAccounts = temp.read().split(",")
-print(unvisitedAccounts)
 temp.close()
 
+#list yang berisi daftar akun instagram yang sudah dikunjungi
+visitedAccounts = list()
+for account in df["ACCOUNTS"]:
+    if account not in visitedAccounts:
+        visitedAccounts.append(account)
 
-
-visitedAccounts = []
-index = 0
-
+index = len(df["ACCOUNTS"])
+print(index)
 #mulai crawling
 while len(unvisitedAccounts) > 0 :
     #mencari akun selanjutnya
     currentAccount = unvisitedAccounts.pop(0)
-    while isPrivate(currentAccount) and len(unvisitedAccounts) > 0:
+    while (currentAccount == "" or currentAccount in visitedAccounts or isPrivate(currentAccount) ) and len(unvisitedAccounts) > 0:
         currentAccount = unvisitedAccounts.pop(0)
+    print(currentAccount)
 
     #mengunjungi halaman akun
     driver.get("https://www.instagram.com/"+currentAccount)
@@ -119,6 +120,10 @@ while len(unvisitedAccounts) > 0 :
     waitUntilCSSselector("span[class = 'g47SY ']", 5)
     jmlhPosts = toInteger(driver.find_element_by_css_selector("span[class *= 'g47SY ']").text)
 
+    #jumlah postingan maksimal 1000
+    if jmlhPosts > 1000 :
+        jmlhPosts = 1000
+
     #klik postingan pertama
     waitUntilCSSselector("div[class = 'v1Nh3 kIKUG  _bz0w']", 5)
     driver.find_element_by_css_selector("div[class = 'v1Nh3 kIKUG  _bz0w']").click()
@@ -128,8 +133,8 @@ while len(unvisitedAccounts) > 0 :
         #mengambil jumlah likes
         #kalo foto
         try:
-            waitUntilCSSselector("button[class = 'sqdOP yWX7d    _8A5w5    '] > span", 5)
-            like = toInteger(driver.find_element_by_css_selector("button[class = 'sqdOP yWX7d    _8A5w5    '] > span").text)
+            waitUntilCSSselector("._8A5w5 > span", 5)
+            like = toInteger(driver.find_element_by_css_selector("._8A5w5 > span").text)
         #kalo video
         except:
             try :
@@ -140,6 +145,7 @@ while len(unvisitedAccounts) > 0 :
             #kalo error skip postnya
             except :
                 try:
+                    print(1)
                     #klik tombol next
                     waitUntilCSSselector("a[class *= 'HBoOv coreSpriteRightPaginationArrow']", 5)
                     driver.find_element_by_css_selector("a[class *= 'HBoOv coreSpriteRightPaginationArrow']").click()
@@ -171,9 +177,10 @@ while len(unvisitedAccounts) > 0 :
         for ii in range(len(comment)):
             comment[ii] = cleanString(comment[ii].text)
 
-        db.loc[index] = [currentAccount, descTemp, tags, like, comment]
-        db.to_csv("level 1.csv", index=False)
+        df.loc[index] = [currentAccount, descTemp, tags, like, comment]
+        df.to_csv("level 1.csv", index=False)
         index += 1
+        print(index)
 
         if i < jmlhPosts - 1 :
             try:
