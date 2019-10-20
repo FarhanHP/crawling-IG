@@ -92,7 +92,7 @@ class Level2 :
         users = list(dfLevel1["ACCOUNTS"])
         posts = list(dfLevel1["POSTS"])
         for i in range(len(users)) :
-            print(i)
+            print(str(i) + " rows have been processed")
             user = users[i]
             bagOfWordsPerSentence = PostProcessing.bagOfWordsPerSentence(str(posts[i]))
             for words in bagOfWordsPerSentence :
@@ -108,4 +108,5 @@ if __name__ == "__main__":
     df = pd.read_csv("level 1.csv")
     level2.level1ToLevel2(df)
     level2.toCsv("level 2.csv")
+    print("Conversion done")
             
