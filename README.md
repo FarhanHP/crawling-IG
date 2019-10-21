@@ -34,7 +34,7 @@ Di tugas ini kami memisahkan program crawling instagram menjadi 4 program :
         - Postingan dengan like paling banyak pada setiap akun
             - Pada fitur ini, ketika dipilih, akan ditampilkan postingan dengan like paling banyak pada setiap user yang berada di file "level 1.csv"
         - Postingan dengan like paling sedikit pada setiap akun
-            - Pada fitur ini, ketika dipilih, akan ditampilan postingan dengan like paling sedikit pada setiap user yang berada di file "level 2.csv"
+            - Pada fitur ini, ketika dipilih, akan ditampilan postingan dengan like paling sedikit pada setiap user yang berada di file "level 1.csv"
         - Postingan dengan hashtag tertentu
             - Pada fitur ini, ketika dipilih, user akan diminta untuk memasukkan hashtag satu atau lebih dipisahkan dengan spasi. Setelah dijalankan, akan ditampilkan postingan yang mengandung hashtag tersebut
         - Peringkat hashtag teratas
